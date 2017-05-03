@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 Django settings for purple_robot_site project.
 
@@ -50,7 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'purple_robot_site.urls'
+ROOT_URLCONF = 'pr.urls'
 
 TEMPLATES = [
     {

@@ -38,4 +38,4 @@ script:
   - python manage.py test
   - cp purple_robot/.pylintrc .
   - pylint purple_robot
-  - bandit -r .
+#   - bandit -r .
