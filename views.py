@@ -1,16 +1,16 @@
-# pylint: disable=line-too-long, no-member, unused-argument, bare-except
+# pylint: disable=no-member, line-too-long
 
-import arrow
 import datetime
 import hashlib
 import json
+import sys
+
+import arrow
 import numpy
 import pytz
-import sys
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, UnreadablePostError
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -19,13 +19,12 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
-from purple_robot_app.forms import ExportJobForm
-from purple_robot_app.models import PurpleRobotPayload, PurpleRobotTest, PurpleRobotEvent, \
-                                    PurpleRobotReport, PurpleRobotExportJob, PurpleRobotReading, \
-                                    PurpleRobotConfiguration, PurpleRobotDevice, PurpleRobotDeviceGroup, \
-                                    PurpleRobotDeviceNote
+from .forms import ExportJobForm
+from .models import PurpleRobotPayload, PurpleRobotTest, PurpleRobotEvent, PurpleRobotReport, \
+                    PurpleRobotExportJob, PurpleRobotReading, PurpleRobotConfiguration, \
+                    PurpleRobotDevice, PurpleRobotDeviceGroup, PurpleRobotDeviceNote
 
-from purple_robot_app.performance import fetch_performance_samples, fetch_performance_users
+from .performance import fetch_performance_samples, fetch_performance_users
 
 
 @never_cache
@@ -50,7 +49,7 @@ def pr_config(request):
             device.config_last_user_agent = 'Unknown'
 
         device.save()
-    except:
+    except: # pylint: disable=bare-except
         pass
 
     if config is None:
@@ -71,7 +70,7 @@ def ingest_payload(request):
     result['Status'] = 'error'
     result['Payload'] = "{}"
 
-    if request.method == 'POST':
+    if request.method == 'POST': # pylint: disable=too-many-nested-blocks
         try:
             json_str = request.POST['json']
 
@@ -157,7 +156,7 @@ def ingest_payload_print(request):
             result['Checksum'] = md5_hash.hexdigest()
         else:
             result['Error'] = 'Source checksum ' + json_obj['Checksum'] + ' doesn\'t match destination checksum ' + checksum_str + '.'
-    except:
+    except: # pylint: disable=bare-except
         error = sys.exc_info()[0]
         result['Error'] = str(error)
 
@@ -171,12 +170,11 @@ def log_event(request):
         here_tz = pytz.timezone(settings.TIME_ZONE)
         payload = json.loads(request.POST['json'])
 
-        tz = pytz.timezone(settings.TIME_ZONE)
-        logged = tz.localize(datetime.datetime.fromtimestamp(int(payload['timestamp'])))
-    
+        logged = here_tz.localize(datetime.datetime.fromtimestamp(int(payload['timestamp'])))
+
         if PurpleRobotEvent.objects.filter(logged=logged, event=payload['event_type']).count() == 0:
             try:
-                if len(payload['user_id'].strip()) == 0:
+                if len(payload['user_id'].strip()) == 0: # pylint: disable=len-as-condition
                     payload['user_id'] = '-'
             except KeyError:
                 payload['user_id'] = '-'
@@ -219,7 +217,7 @@ def tests_by_user(request, user_id):
     context['success'] = True
 
     for test in context['tests']:
-        if test.active and test.passes() == False:
+        if test.active and test.passes() is False:
             context['success'] = False
 
     return render_to_response('purple_robot_tests.html', context)
@@ -236,7 +234,7 @@ def tests_all(request):
     context['success'] = True
 
     for test in context['tests']:
-        if test.active and test.passes() == False:
+        if test.active and test.passes() is False:
             context['success'] = False
 
     return render_to_response('purple_robot_tests.html', context)
@@ -255,12 +253,10 @@ def pr_home(request):
 
 @staff_member_required
 @never_cache
-def pr_device(request, device_id):
-    context = RequestContext(request)
+def pr_device(request, device_id): # pylint: disable=unused-argument
+    context = {}
 
     context['device'] = PurpleRobotDevice.objects.get(device_id=device_id)
-
-    context.update(csrf(request))
 
     try:
         context['pr_show_device_id_header'] = settings.PURPLE_ROBOT_SHOW_DEVICE_ID_HEADER
@@ -303,7 +299,7 @@ def pr_device_probe(request, device_id, probe_name):
 
 @staff_member_required
 @never_cache
-def pr_by_probe(request):
+def pr_by_probe(request): # pylint: disable=unused-argument
     return render_to_response('purple_robot_probe.html')
 
 
@@ -335,7 +331,7 @@ def pr_by_user(request):
 
 @staff_member_required
 @never_cache
-def test_details_json(request, slug):
+def test_details_json(request, slug): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     results = []
 
     test = PurpleRobotTest.objects.get(slug=slug)
@@ -374,7 +370,7 @@ def test_details_json(request, slug):
             else:
                 cpu_stamps.append(payload['TIMESTAMP'])
 
-        if len(cpu_stamps) > 0:
+        if cpu_stamps:
             cpu_stamps.sort()
 
             start_cpu = cpu_stamps[0]
@@ -394,7 +390,7 @@ def test_details_json(request, slug):
 
             cpu_frequency['data'] = cpu_data
 
-        if len(sensor_stamps) > 0:
+        if sensor_stamps:
             sensor_stamps.sort()
             start_sensor = sensor_stamps[0]
 
@@ -428,7 +424,7 @@ def test_details_json(request, slug):
 
 @staff_member_required
 @never_cache
-def fetch_export_file(request, job_pk):
+def fetch_export_file(request, job_pk): # pylint: disable=unused-argument
     job = PurpleRobotExportJob.objects.get(pk=int(job_pk))
 
     return redirect(job.export_file.url)
@@ -452,7 +448,7 @@ def create_export_job(request):
             probes = ''
 
             for probe in form.cleaned_data.get('probes'):
-                if len(probes) > 0:
+                if probes:
                     probes += '\n'
 
                 probes += probe
@@ -462,7 +458,7 @@ def create_export_job(request):
             hashes = ''
 
             for user_hash in form.cleaned_data.get('hashes'):
-                if len(user_hash) > 0:
+                if user_hash:
                     hashes += '\n'
 
                 hashes += user_hash
@@ -485,7 +481,7 @@ def pr_add_group(request):
         group_id = request.POST['group_id']
         group_name = request.POST['group_name']
 
-        if group_id is None or len(group_id.strip()) == 0 or group_name is None or len(group_id.strip()) == 0:
+        if group_id is None or len(group_id.strip()) == 0 or group_name is None or len(group_id.strip()) == 0: # pylint: disable=len-as-condition
             request.session['pr_messages'] = ['Please provide a non-empty group name and identifier.']
         elif PurpleRobotDeviceGroup.objects.filter(group_id=group_id).count() == 0:
             group = PurpleRobotDeviceGroup(group_id=group_id, name=group_name)
@@ -507,7 +503,7 @@ def pr_add_device(request, group_id):
             device_id = request.POST['device_id']
             device_name = request.POST['device_name']
 
-            if device_id is None or len(device_id.strip()) == 0 or device_name is None or len(device_name.strip()) == 0:
+            if device_id is None or len(device_id.strip()) == 0 or device_name is None or len(device_name.strip()) == 0: # pylint: disable=len-as-condition
                 request.session['pr_messages'] = ['Please provide a non-empty device name and identifier.']
             elif PurpleRobotDevice.objects.filter(device_id=device_id).count() == 0:
                 device = PurpleRobotDevice(device_id=device_id, name=device_name, device_group=group)
@@ -535,7 +531,7 @@ def pr_add_device(request, group_id):
 
 @staff_member_required
 @never_cache
-def pr_remove_device(request, group_id, device_id):
+def pr_remove_device(request, group_id, device_id): # pylint: disable=unused-argument
     group = PurpleRobotDeviceGroup.objects.filter(pk=int(group_id)).first()
 
     device = group.devices.filter(pk=int(device_id)).first()
@@ -549,9 +545,8 @@ def pr_remove_device(request, group_id, device_id):
 
 @staff_member_required
 @never_cache
-def pr_configurations(request):
-    context = RequestContext(request)
-    context.update(csrf(request))
+def pr_configurations(request): # pylint: disable=unused-argument
+    context = {}
 
     context['configurations'] = PurpleRobotConfiguration.objects.all()
 
@@ -560,9 +555,8 @@ def pr_configurations(request):
 
 @staff_member_required
 @never_cache
-def pr_configuration(request, config_id):
-    context = RequestContext(request)
-    context.update(csrf(request))
+def pr_configuration(request, config_id): # pylint: disable=unused-argument
+    context = {}
 
     context['config'] = get_object_or_404(PurpleRobotConfiguration, slug=config_id)
 
@@ -605,9 +599,8 @@ def pr_add_note(request):
 
 
 @never_cache
-def pr_status(request):
-    context = RequestContext(request)
-    context.update(csrf(request))
+def pr_status(request): # pylint: disable=unused-argument, too-many-branches, too-many-statements
+    context = {}
 
     context['server_performance'] = fetch_performance_samples('system', 'server_performance')
 
@@ -645,7 +638,7 @@ def pr_status(request):
     context['upload_count'] = '-'
     context['upload_rate'] = '-'
 
-    if len(context['uploads_today']) > 0:
+    if context['uploads_today']:
         context['upload_count'] = context['uploads_today'][-1]['count']
         context['upload_rate'] = context['uploads_today'][-1]['count'] / upload_seconds
         context['upload_seconds'] = upload_seconds
@@ -656,7 +649,7 @@ def pr_status(request):
     context['upload_hour_count'] = '-'
     context['upload_hour_rate'] = '-'
 
-    if len(context['uploads_hour']) > 0:
+    if context['uploads_hour']:
         context['upload_hour_count'] = context['uploads_hour'][-1]['count']
         context['upload_hour_rate'] = context['uploads_hour'][-1]['count'] / upload_seconds
         context['upload_hour_seconds'] = upload_seconds
@@ -699,10 +692,10 @@ def pr_status(request):
         if arrow.get(item['sample_date']).datetime >= start_hour:
             hour_items.append(item['num_mirrored'] / (item['extraction_time'] + item['query_time']))
 
-    if len(day_items) > 0:
+    if day_items:
         context['mirror_average_day'] = numpy.mean(day_items)
 
-    if len(hour_items) > 0:
+    if hour_items:
         context['mirror_average_hour'] = numpy.mean(hour_items)
 
     return render_to_response('purple_robot_status.html', context)
@@ -710,9 +703,8 @@ def pr_status(request):
 
 @staff_member_required
 @never_cache
-def pr_users(request):
-    context = RequestContext(request)
-    context.update(csrf(request))
+def pr_users(request): # pylint: disable=unused-argument
+    context = {}
 
     context['groups'] = PurpleRobotDeviceGroup.objects.all().order_by('group_id')
     context['unaffiliated'] = PurpleRobotDevice.objects.filter(device_group=None).order_by('device_id')

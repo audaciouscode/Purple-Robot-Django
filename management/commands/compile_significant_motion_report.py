@@ -3,30 +3,31 @@
 import datetime
 import gzip
 import json
-import pytz
 import tempfile
 
+import pytz
+
+from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from purple_robot.settings import REPORT_DEVICES
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotReport
+from ...models import PurpleRobotReading, PurpleRobotReport
 
 PROBE_NAME = 'edu.northwestern.cbits.purple_robot_manager.probes.builtin.SignificantMotionProbe'
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
-        hashes = REPORT_DEVICES # PurpleRobotPayload.objects.order_by().values('user_id').distinct()
-        
+    def handle(self, *args, **options): # pylint: disable=too-many-locals
+        hashes = settings.REPORT_DEVICES # PurpleRobotPayload.objects.order_by().values('user_id').distinct()
+
 #        start = datetime.datetime.now() - datetime.timedelta(days=120)
         start_ts = datetime.datetime(2015, 11, 10, 0, 0, 0, 0, tzinfo=pytz.timezone('US/Central'))
         end_ts = start_ts + datetime.timedelta(days=1)
-        
+
         for user_hash in hashes:
             payloads = PurpleRobotReading.objects.filter(user_id=user_hash, probe=PROBE_NAME, logged__gte=start_ts, logged__lt=end_ts).order_by('logged')
-            
+
             count = payloads.count()
             if count > 0:
                 temp_file = tempfile.TemporaryFile()

@@ -1,11 +1,12 @@
 # pylint: disable=line-too-long, bare-except
 
-import arrow
 import datetime
 # import msgpack
 import os
 
 import cPickle as pickle
+
+import arrow
 
 from django.conf import settings
 from django.utils import timezone
@@ -13,7 +14,7 @@ from django.utils import timezone
 
 def append_performance_sample(user, item, detail_date=timezone.now(), value=''):
     os.umask(000)
-    
+
     today = datetime.date.today()
 
     folder = settings.MEDIA_ROOT + '/purple_robot_analytics/' + user + '/' + today.isoformat()

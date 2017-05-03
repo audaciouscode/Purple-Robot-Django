@@ -10,8 +10,8 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from purple_robot_app.models import PurpleRobotPayload
-from purple_robot_app.performance import append_performance_sample
+from ...models import PurpleRobotPayload
+from ...performance import append_performance_sample
 
 EXTRACTORS = {}
 
@@ -28,7 +28,7 @@ def touch(fname, mode=0o666):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         try:
             settings.PURPLE_ROBOT_FLAT_MIRROR
         except AttributeError:
@@ -62,7 +62,7 @@ class Command(BaseCommand):
         remote_db = 0.0
         local_app = 0.0
 
-        while len(payloads) > 0:
+        while payloads: # pylint: disable=too-many-nested-blocks
             touch('/tmp/extract_into_database.lock')
 
             extractor_times = {}
@@ -89,10 +89,7 @@ class Command(BaseCommand):
                         found = False
 
                         if (probe_name in EXTRACTORS) is True:
-                            if EXTRACTORS[probe_name] is not None:
-                                found = True
-                            else:
-                                found = False
+                            found = (EXTRACTORS[probe_name] is not None)
                         else:
                             EXTRACTORS[probe_name] = None
 
@@ -109,7 +106,7 @@ class Command(BaseCommand):
                         if found is False:
                             has_all_extractors = False
 
-                            if (probe_name in missing_extractors) == False:
+                            if (probe_name in missing_extractors) is False:
                                 missing_extractors.append(probe_name)
                     else:
                         has_all_extractors = False
@@ -165,7 +162,7 @@ class Command(BaseCommand):
                     tags = payload.process_tags
 
                     if tags is None or tags.find(tag) == -1:
-                        if tags is None or len(tags) == 0:
+                        if tags is None or len(tags) == 0: # pylint: disable=len-as-condition
                             tags = tag
                         else:
                             tags += ' ' + tag
@@ -183,7 +180,7 @@ class Command(BaseCommand):
                     tags = payload.process_tags
 
                     if tags is None or tags.find(skip_tag) == -1:
-                        if tags is None or len(tags) == 0:
+                        if tags is None or len(tags) == 0: # pylint: disable=len-as-condition
                             tags = skip_tag
                         else:
                             tags += ' ' + skip_tag
@@ -198,7 +195,7 @@ class Command(BaseCommand):
                         cpu_start = datetime.datetime.now()
                         local_db += (cpu_start - read_start).total_seconds()
 
-                if len(missing_extractors) > 0:
+                if missing_extractors:
                     print 'MISSING EXTRACTORS: ' + str(missing_extractors)
 
             end = timezone.now()

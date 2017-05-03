@@ -1,16 +1,17 @@
 # pylint: disable=line-too-long, no-member
 
-import arrow
 import datetime
 import os
 import pytz
+
+import arrow
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotPayload
-from purple_robot_app.performance import append_performance_sample
+from ...models import PurpleRobotPayload
+from ...performance import append_performance_sample
 
 
 def touch(fname, mode=0o666):
@@ -21,7 +22,7 @@ def touch(fname, mode=0o666):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-statements
         if os.access('/tmp/gather_statistics.lock', os.R_OK):
             timestamp = os.path.getmtime('/tmp/gather_statistics.lock')
             created = datetime.datetime.fromtimestamp(timestamp)

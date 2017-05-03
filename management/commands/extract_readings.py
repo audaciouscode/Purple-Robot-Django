@@ -6,8 +6,8 @@ import os
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotPayload
-from purple_robot_app.performance import append_performance_sample
+from ...models import PurpleRobotReading, PurpleRobotPayload
+from ...performance import append_performance_sample
 
 
 def touch(fname, mode=0o666):
@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
         query_time = (end - start).total_seconds()
 
-        while len(payloads) > 0:
+        while payloads:
             touch('/tmp/extract_readings.lock')
 
             start = timezone.now()

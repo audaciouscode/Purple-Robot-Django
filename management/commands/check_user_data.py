@@ -4,7 +4,7 @@ import hashlib
 
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotReading
+from ...models import PurpleRobotReading
 
 
 class Command(BaseCommand):
@@ -14,7 +14,7 @@ class Command(BaseCommand):
         for line in user_file:
             user_id = line.strip()
 
-            if len(user_id) > 0:
+            if user_id:
                 # readings = PurpleRobotReading.objects.filter(user_id=user_id)
                 # print(user_id + ': ' + str(readings.count()))
 

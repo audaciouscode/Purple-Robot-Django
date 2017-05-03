@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotDevice
+from ...models import PurpleRobotReading, PurpleRobotDevice
 
 
 def touch(fname, mode=0o666):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 if 'total_readings_size' in metadata:
                     del metadata['total_readings_size']
 
-            if ('total_readings_size' in metadata) == False:
+            if ('total_readings_size' in metadata) is False:
                 total_size = PurpleRobotReading.objects.filter(user_id=device.hash_key).aggregate(Sum('size'))
                 metadata['total_readings_size'] = total_size['size__sum']
 

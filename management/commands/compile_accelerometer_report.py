@@ -3,31 +3,32 @@
 import datetime
 import gzip
 import json
-import pytz
 import sys
 import tempfile
 
+import pytz
+
+from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotReport
-from purple_robot.settings import REPORT_DEVICES
+from ...models import PurpleRobotReading, PurpleRobotReport
 
 PROBE_NAME = 'edu.northwestern.cbits.purple_robot_manager.probes.builtin.AccelerometerProbe'
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
-        hashes = REPORT_DEVICES
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+        hashes = settings.REPORT_DEVICES
 #        start = datetime.datetime.now() - datetime.timedelta(days=120)
         start_ts = datetime.datetime(2015, 7, 3, 5, 0, 0, 0, tzinfo=pytz.timezone('US/Central'))
         end_ts = start_ts + datetime.timedelta(hours=1)
-        
+
         # print(start_ts.isoformat())
         # print(end_ts.isoformat())
 
-        for user_hash in hashes:
+        for user_hash in hashes: # pylint: disable=too-many-nested-blocks
             payloads = PurpleRobotReading.objects.filter(user_id=user_hash, probe=PROBE_NAME, logged__gte=start_ts, logged__lt=end_ts).order_by('logged')
 
             count = payloads.count()

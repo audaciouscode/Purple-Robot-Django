@@ -15,12 +15,12 @@ def format_reading(probe_name, json_payload):
 
     day_duration = (item["DAY_DURATION"]/1000)/3600.0
 
-    if item["IS_DAY"] == True:
+    if item["IS_DAY"]:
         sunlight_hrs = (timestamp - sunrise).seconds / 3600.0
         return "{0} -> {1}, Daylight hours: {2:.1f} - Hours after sunrise: {3:.1f}".format(str(sunrise)[10:], str(sunset)[10:], day_duration, sunlight_hrs)
-    else:
-        night_hrs = (timestamp - sunset).seconds / 3600.0
-        return "{0} -> {1}, Daylight hours: {2:.1f} - Hours after sunset: {3:.1f}".format(str(sunrise)[10:], str(sunset)[10:], day_duration, night_hrs)
+
+    night_hrs = (timestamp - sunset).seconds / 3600.0
+    return "{0} -> {1}, Daylight hours: {2:.1f} - Hours after sunset: {3:.1f}".format(str(sunrise)[10:], str(sunset)[10:], day_duration, night_hrs)
 
 
 def visualize(probe_name, readings):
@@ -36,7 +36,8 @@ def visualize(probe_name, readings):
         day_duration = (payload["DAY_DURATION"]/1000)/3600
 
         sun_ref = 0
-        if payload["IS_DAY"] == True:
+
+        if payload["IS_DAY"]:
             sun_ref = (datetime.datetime.fromtimestamp(timestamp) - sunrise).seconds / 3600.0
         else:
             sun_ref = -(datetime.datetime.fromtimestamp(timestamp) - sunset).seconds / 3600.0
@@ -50,7 +51,7 @@ def visualize(probe_name, readings):
         daylight_dict["y"] = day_duration
         daylight_dict["x"] = timestamp
         daylight_report.append(daylight_dict)
-        
+
     context = {'probe_name': probe_name,
                'readings': readings,
                'sun_report': json.dumps(sun_report),

@@ -5,7 +5,7 @@ import os
 
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotDevice
+from ...models import PurpleRobotReading, PurpleRobotDevice
 
 
 def touch(fname, mode=0o666):
@@ -17,9 +17,6 @@ def touch(fname, mode=0o666):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        if True:
-            return  # Disable this command!
-
         if os.access('/tmp/delete_duplicate_readings.lock', os.R_OK):
             timestamp = os.path.getmtime('/tmp/delete_duplicate_readings.lock')
             created = datetime.datetime.fromtimestamp(timestamp)

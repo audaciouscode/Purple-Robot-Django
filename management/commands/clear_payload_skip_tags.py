@@ -1,12 +1,13 @@
 # pylint: disable=line-too-long, no-member
 
 import datetime
-import requests
 import os
+
+import requests
 
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotPayload
+from ...models import PurpleRobotPayload
 
 PRINT_PROGRESS = False
 
@@ -40,7 +41,7 @@ class Command(BaseCommand):
 
         count = 0
 
-        while len(payloads) > 0 and count < 20:
+        while payloads and count < 20:
             count += 1
 
             for payload in payloads:

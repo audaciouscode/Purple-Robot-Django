@@ -3,26 +3,27 @@
 import datetime
 import gzip
 import json
-import pytz
 import tempfile
 
+import pytz
+
+from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotReport
-from purple_robot.settings import REPORT_DEVICES
+from ...models import PurpleRobotReading, PurpleRobotReport
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
-        hashes = REPORT_DEVICES  # PurpleRobotPayload.objects.order_by().values('user_id').distinct()
+    def handle(self, *args, **options): # pylint: disable=too-many-locals
+        hashes = settings.REPORT_DEVICES  # PurpleRobotPayload.objects.order_by().values('user_id').distinct()
 
 #        start = datetime.datetime.now() - datetime.timedelta(days=120)
         start_ts = datetime.datetime(2015, 11, 10, 0, 0, 0, 0, tzinfo=pytz.timezone('US/Central'))
         end_ts = start_ts + datetime.timedelta(days=1)
-        
+
         labels = PurpleRobotReading.objects.exclude(probe__startswith='edu.northwestern').values('probe').distinct()
 
         for user_hash in hashes:

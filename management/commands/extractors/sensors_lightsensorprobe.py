@@ -5,7 +5,7 @@ import msgpack
 import psycopg2
 import pytz
 
-from purple_robot_app.models import PurpleRobotReading
+from ....models import PurpleRobotReading
 
 CREATE_PROBE_TABLE_SQL = 'CREATE TABLE sensors_lightsensorprobe(id SERIAL PRIMARY KEY, user_id TEXT, guid TEXT, timestamp DOUBLE PRECISION, utc_logged TIMESTAMP, sensor_vendor TEXT, sensor_name TEXT, sensor_power DOUBLE PRECISION, sensor_type BIGINT, sensor_version BIGINT, sensor_resolution DOUBLE PRECISION, sensor_maximum_range DOUBLE PRECISION);'
 CREATE_PROBE_USER_ID_INDEX = 'CREATE INDEX ON sensors_lightsensorprobe(user_id);'
@@ -62,7 +62,7 @@ def reading_table_exists(conn):
     return table_exists
 
 
-def insert(connection_str, user_id, reading, check_exists=True):
+def insert(connection_str, user_id, reading, check_exists=True): # pylint: disable=too-many-locals, too-many-statements
     conn = psycopg2.connect(connection_str)
     cursor = conn.cursor()
 
@@ -104,7 +104,7 @@ def insert(connection_str, user_id, reading, check_exists=True):
                                  reading['SENSOR']['RESOLUTION'],
                                  reading['SENSOR']['MAXIMUM_RANGE']))
 
-    for row in cursor.fetchall():
+    for row in cursor.fetchall(): # pylint: disable=too-many-nested-blocks
         reading_id = row[0]
 
         reading_cursor = conn.cursor()

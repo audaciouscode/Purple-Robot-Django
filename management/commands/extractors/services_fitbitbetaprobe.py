@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, too-many-boolean-expressions
 
 import datetime
 import psycopg2
@@ -135,7 +135,7 @@ def elevation_table_exists(conn):
     return table_exists
 
 
-def insert(connection_str, user_id, reading, check_exists=True):
+def insert(connection_str, user_id, reading, check_exists=True):  # pylint: disable=too-many-branches, too-many-statements
     conn = psycopg2.connect(connection_str)
     cursor = conn.cursor()
 

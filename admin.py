@@ -2,12 +2,10 @@
 
 from django.contrib import admin
 
-from purple_robot_app.models import PurpleRobotConfiguration, PurpleRobotPayload, \
-                                    PurpleRobotEvent, PurpleRobotReading, \
-                                    PurpleRobotReport, PurpleRobotTest, \
-                                    PurpleRobotExportJob, PurpleRobotDeviceGroup, \
-                                    PurpleRobotDevice, PurpleRobotAlert, \
-                                    PurpleRobotDeviceNote
+from .models import PurpleRobotConfiguration, PurpleRobotPayload, PurpleRobotEvent, \
+                    PurpleRobotReading, PurpleRobotReport, PurpleRobotTest, PurpleRobotExportJob, \
+                    PurpleRobotDeviceGroup, PurpleRobotDevice, PurpleRobotAlert, \
+                    PurpleRobotDeviceNote
 
 
 class PurpleRobotConfigurationAdmin(admin.ModelAdmin):

@@ -8,10 +8,9 @@ from sexpdata import Symbol, Quoted, car, cdr, loads
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotDevice, PurpleRobotConfiguration
-from purple_robot_app.management.commands.pr_check_status import log_alert, cancel_alert
-
-from purple_robot_app.device_info import can_sense
+from ...models import PurpleRobotDevice, PurpleRobotConfiguration
+from ...management.commands.pr_check_status import log_alert, cancel_alert
+from ...device_info import can_sense
 
 TAG = 'expected_probe_missing'
 START_DAYS = 7
@@ -24,7 +23,7 @@ def touch(fname, mode=0o666):
         os.utime(fname, None)
 
 
-def enabled_probes(contents):
+def enabled_probes(contents): # pylint: disable=too-many-branches
     probes = []
 
     if isinstance(contents, Symbol):
@@ -63,7 +62,7 @@ def enabled_probes(contents):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches
         if os.access('/tmp/expected_probe_missing_check.lock', os.R_OK):
             timestamp = os.path.getmtime('/tmp/expected_probe_missing_check.lock')
             created = datetime.datetime.fromtimestamp(timestamp)
@@ -118,7 +117,7 @@ class Command(BaseCommand):
                     if 'RunningSoftwareProbe' in missing_probes:
                         missing_probes.remove('RunningSoftwareProbe')
 
-                if len(missing_probes) == 0:
+                if len(missing_probes) == 0: # pylint: disable=len-as-condition
                     cancel_alert(tags=TAG, user_id=device.hash_key)
                 else:
                     missing_probes_str = ', '.join(missing_probes[:4])

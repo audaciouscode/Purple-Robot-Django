@@ -109,7 +109,7 @@ def trigger_table_exists(conn):
     return table_exists
 
 
-def insert(connection_str, user_id, reading, check_exists=True):
+def insert(connection_str, user_id, reading, check_exists=True): # pylint: disable=too-many-locals
     conn = psycopg2.connect(connection_str)
     cursor = conn.cursor()
 

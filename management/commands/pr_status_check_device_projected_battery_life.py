@@ -2,8 +2,8 @@
 
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotDevice
-from purple_robot_app.management.commands.pr_check_status import cancel_alert
+from ...models import PurpleRobotDevice
+from ...management.commands.pr_check_status import cancel_alert
 
 
 class Command(BaseCommand):
@@ -19,8 +19,10 @@ class Command(BaseCommand):
 #            elif lifetime > 8:
 #                cancel_alert(tags='device_projected_lifetime', user_id=device.hash_key)
 #            elif lifetime > 6:
-#                log_alert(message='Device lifetime is estimated to be {0:.2f} hours.'.format(lifetime),
+#                log_alert(message='Device lifetime is estimated to be {0:.2f} hours.'
+#                                  .format(lifetime),
 #                          severity=1, tags='device_projected_lifetime', user_id=device.hash_key)
 #            else:
-#                log_alert(message='Device lifetime is estimated to be {0:.2f} hours.'.format(lifetime),
+#                log_alert(message='Device lifetime is estimated to be {0:.2f} hours.'
+#                                  .format(lifetime),
 #                          severity=2, tags='device_projected_lifetime', user_id=device.hash_key)

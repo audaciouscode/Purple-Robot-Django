@@ -3,15 +3,16 @@
 import datetime
 import hashlib
 import json
-import requests
 import os
+
+import requests
 
 from requests.exceptions import ConnectionError, ReadTimeout
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotPayload, PurpleRobotReading
+from ...models import PurpleRobotPayload, PurpleRobotReading
 
 PRINT_PROGRESS = False
 
@@ -26,7 +27,7 @@ def touch(fname, mode=0o666):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         try:
             settings.PR_REDIRECT_ENDPOINT_MAP
         except AttributeError:
@@ -50,10 +51,10 @@ class Command(BaseCommand):
 
         requests.packages.urllib3.disable_warnings()
 
-        for config in settings.PR_REDIRECT_ENDPOINT_MAP:
+        for config in settings.PR_REDIRECT_ENDPOINT_MAP: # pylint: disable=too-many-nested-blocks
             payloads = list(PurpleRobotPayload.objects.filter(user_id=config['hash']).exclude(process_tags__contains=tag)[:50])
 
-            while len(payloads) > 0:
+            while payloads:
                 reflected_payloads = []
 
                 if PRINT_PROGRESS:
@@ -117,7 +118,7 @@ class Command(BaseCommand):
                     tags = pr_payload.process_tags
 
                     if tags is None or tags.find(tag) == -1:
-                        if tags is None or len(tags) == 0:
+                        if tags is None or len(tags) == 0: # pylint: disable=len-as-condition
                             tags = tag
                         else:
                             tags += ' ' + tag

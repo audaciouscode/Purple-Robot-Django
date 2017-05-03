@@ -36,7 +36,7 @@ def format_reading(probe_name, json_payload):
     return 'Heart: ' + heart + ' Elevation: ' + elevation + ' Distance: ' + distance + ' Steps: ' + steps + ' Floors: ' + floors + ' Calories: ' + calories
 
 
-def visualize(probe_name, readings):
+def visualize(probe_name, readings): # pylint: disable=too-many-branches
     heart = []
     steps = []
     distance = []

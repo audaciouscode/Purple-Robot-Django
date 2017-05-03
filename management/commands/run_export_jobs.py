@@ -1,6 +1,5 @@
 # pylint: disable=line-too-long, no-member
 
-import datetime
 import gzip
 import json
 import tempfile
@@ -11,7 +10,6 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.template import Context
 from django.template.loader import render_to_string
-from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from django.conf import settings
@@ -20,11 +18,9 @@ from ...models import PurpleRobotExportJob, PurpleRobotReading
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         processing = PurpleRobotExportJob.objects.filter(state='processing')
         pending = PurpleRobotExportJob.objects.filter(state='pending')
-        
-        now = timezone.now()
 
         if processing.count() > 0:
             pass  # Do nothing - already compiling a job...
@@ -71,15 +67,15 @@ class Command(BaseCommand):
 
                     for reading in readings[page_start:page_end]:
                         payload = json.loads(reading.payload)
-                        
+
                         if 'FEATURE_VALUE' in payload and 'start' in payload['FEATURE_VALUE'] and 'end' in payload['FEATURE_VALUE'] and 'duration' in payload['FEATURE_VALUE']:
                             range_start = payload['FEATURE_VALUE']['start']
                             range_end = payload['FEATURE_VALUE']['end']
                             duration = payload['FEATURE_VALUE']['duration']
-                            
+
                             gzf.write(user_hash + '\t' + reading.probe + '\t' + str(reading.logged) + '\t' + str(range_start) + '\t' + str(range_end) + '\t' + str(duration) + '\t' + json.dumps(payload) + '\n')
-                        
-                        
+
+
                         else:
                             gzf.write(user_hash + '\t' + reading.probe + '\t' + str(reading.logged) + '\t\t\t\t' + json.dumps(payload) + '\n')
 

@@ -16,8 +16,8 @@ def format_reading(probe_name, json_payload):
     if comm_type == "PHONE":
         duration = item["DURATION"]
         return "{0} - {1}: {2} - Duration: {3}".format(comm_timestamp, comm_direction.capitalize(), comm_type.capitalize(), duration)
-    else:
-        return "{0} - {1}: {2}".format(comm_timestamp, comm_direction.capitalize(), comm_type)
+
+    return "{0} - {1}: {2}".format(comm_timestamp, comm_direction.capitalize(), comm_type)
 
 
 def visualize(probe_name, readings):

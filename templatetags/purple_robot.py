@@ -1,21 +1,22 @@
-import arrow
+# pylint: disable=no-member
+
 import datetime
+
+import arrow
 import pytz
 
 from django import template
 from django.conf import settings
-from django.core.cache import cache
-from django.template.defaultfilters import stringfilter
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotDeviceGroup, PurpleRobotAlert, PurpleRobotDevice
+from ..models import PurpleRobotDeviceGroup, PurpleRobotAlert, PurpleRobotDevice
 
 register = template.Library()
 
 
 @register.tag(name="pr_device_custom_sidebar")
-def pr_device_custom_sidebar(parser, token):
+def pr_device_custom_sidebar(parser, token): # pylint: disable=unused-argument
     return CustomSidebarNode()
 
 
@@ -33,7 +34,7 @@ class CustomSidebarNode(template.Node):
 
 
 @register.tag(name="pr_device_custom_navbar")
-def pr_device_custom_navbar(parser, token):
+def pr_device_custom_navbar(parser, token): # pylint: disable=unused-argument
     return CustomNavbarNode()
 
 
@@ -51,7 +52,7 @@ class CustomNavbarNode(template.Node):
 
 
 @register.tag(name="pr_home_custom_console")
-def tag_pr_home_custom_console(parser, token):
+def tag_pr_home_custom_console(parser, token): # pylint: disable=unused-argument
     return HomeCustomConsoleNode()
 
 
@@ -69,7 +70,7 @@ class HomeCustomConsoleNode(template.Node):
 
 
 @register.tag(name="pr_device_custom_console")
-def tag_pr_device_custom_console(parser, token):
+def tag_pr_device_custom_console(parser, token): # pylint: disable=unused-argument
     return DeviceCustomConsoleNode()
 
 
@@ -87,11 +88,12 @@ class DeviceCustomConsoleNode(template.Node):
 
 
 @register.tag(name="pr_group_table")
-def tag_pr_group_table(parser, token):
+def tag_pr_group_table(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, group_id = token.split_contents()
+        tag_name, group_id = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return GroupTableNode(group_id)
 
@@ -106,19 +108,20 @@ class GroupTableNode(template.Node):
         context['device_group'] = PurpleRobotDeviceGroup.objects.filter(group_id=group_id).first()
 
         if context['device_group'] != None:
-            context['device_group_devices'] = list(context['device_group'].devices.all().order_by('name', 'device_id'))
+            context['device_group_devices'] = list(context['device_group'].devices.all().order_by('name', 'device_id')) # pylint: disable=line-too-long
         else:
-            context['device_group_devices'] = list(PurpleRobotDevice.objects.filter(device_group=None).order_by('name', 'device_id'))
+            context['device_group_devices'] = list(PurpleRobotDevice.objects.filter(device_group=None).order_by('name', 'device_id')) # pylint: disable=line-too-long
 
         return render_to_string('tag_pr_group_table.html', context)
 
 
 @register.tag(name="pr_timestamp_ago")
-def tag_pr_timestamp_ago(parser, token):
+def tag_pr_timestamp_ago(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, timestamp = token.split_contents()
+        tag_name, timestamp = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return TimestampAgoNode(timestamp)
 
@@ -158,11 +161,12 @@ class TimestampAgoNode(template.Node):
 
 
 @register.tag(name="pr_date_ago")
-def tag_pr_date_ago(parser, token):
+def tag_pr_date_ago(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, date_obj = token.split_contents()
+        tag_name, date_obj = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return DateAgoNode(date_obj)
 
@@ -200,11 +204,12 @@ class DateAgoNode(template.Node):
 
 
 @register.tag(name="pr_human_duration")
-def tag_pr_human_duration(parser, token):
+def tag_pr_human_duration(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, seconds_obj = token.split_contents()
+        tag_name, seconds_obj = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return HumanDurationNode(seconds_obj)
 
@@ -235,11 +240,12 @@ class HumanDurationNode(template.Node):
 
 
 @register.tag(name="pr_frequency")
-def tag_pr_frequency(parser, token):
+def tag_pr_frequency(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, frequency = token.split_contents()
+        tag_name, frequency = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return FrequencyNode(frequency)
 
@@ -290,11 +296,12 @@ class FrequencyNode(template.Node):
 
 
 @register.tag(name="pr_device_alerts")
-def tag_pr_device_alerts(parser, token):
+def tag_pr_device_alerts(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, user_id = token.split_contents()
+        tag_name, user_id = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return DeviceAlertsNode(user_id)
 
@@ -315,7 +322,7 @@ class DeviceAlertsNode(template.Node):
 
             return render_to_string('tag_pr_device_alerts.html', context)
 
-        alerts = PurpleRobotAlert.objects.filter(user_id=user_id, dismissed=None).order_by('-severity')
+        alerts = PurpleRobotAlert.objects.filter(user_id=user_id, dismissed=None).order_by('-severity')  # pylint: disable=line-too-long
 
         tooltip = 'No alerts.'
 
@@ -325,7 +332,7 @@ class DeviceAlertsNode(template.Node):
             tooltip = ''
 
             for alert in alerts:
-                if len(tooltip) > 0:
+                if tooltip:
                     tooltip += '\n'
 
                 tooltip += alert.message
@@ -347,11 +354,12 @@ class DeviceAlertsNode(template.Node):
 
 
 @register.tag(name="pr_data_size")
-def tag_pr_data_size(parser, token):
+def tag_pr_data_size(parser, token): # pylint: disable=unused-argument
     try:
-        tag_name, data_size = token.split_contents()
+        tag_name, data_size = token.split_contents() # pylint: disable=unused-variable
     except ValueError:
-        raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
+        raise template.TemplateSyntaxError("%r tag requires a single argument" % \
+                                           token.contents.split()[0])
 
     return DataSizeNode(data_size)
 
@@ -378,16 +386,16 @@ class DataSizeNode(template.Node):
         elif data_size > 1024:
             return "{:10.1f}".format(data_size / 1024) + " KB"
 
-        return (str(data_size) + " B")
+        return str(data_size) + " B"
 
 
 @register.filter(name='to_percent')
 def to_percent(value):
-    return (value * 100)
+    return value * 100
 
 
 @register.tag(name="pr_total_data_size")
-def tag_pr_total_database_size(parser, token):
+def tag_pr_total_database_size(parser, token): # pylint: disable=unused-argument
     return TotalDataSizeNode()
 
 
@@ -415,4 +423,4 @@ class TotalDataSizeNode(template.Node):
         elif data_size > 1024:
             return "{:10.1f}".format(data_size / 1024) + " KB"
 
-        return (str(data_size) + " B")
+        return str(data_size) + " B"

@@ -1,16 +1,17 @@
 # pylint: disable=line-too-long, no-member, old-style-class, no-init, unused-argument, too-many-lines, too-many-public-methods, too-few-public-methods
 
-import arrow
 import calendar
 import datetime
 import importlib
 import hashlib
 import json
-import numpy
-import pytz
 import string
 import time
 import traceback
+
+import arrow
+import numpy
+import pytz
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -22,7 +23,7 @@ from django.utils import timezone
 from django.utils.safestring import SafeString
 from django.utils.text import slugify
 
-from purple_robot_app.performance import fetch_performance_samples
+from .performance import fetch_performance_samples
 
 PROBE_USER_TIME_CACHE = {}
 
@@ -126,8 +127,8 @@ class PurpleRobotDevice(models.Model):
         if self.first_reading_timestamp != 0:
             if self.first_reading_timestamp > 0:
                 return datetime.datetime.utcfromtimestamp(self.first_reading_timestamp).replace(tzinfo=pytz.utc)
-            else:
-                return None
+
+            return None
 
         first = PurpleRobotReading.objects.filter(user_id=self.hash_key).order_by('logged').first()
 
@@ -148,8 +149,8 @@ class PurpleRobotDevice(models.Model):
         if self.last_reading_timestamp != 0:
             if self.last_reading_timestamp > 0:
                 return datetime.datetime.utcfromtimestamp(self.last_reading_timestamp).replace(tzinfo=pytz.utc)
-            else:
-                return None
+
+            return None
 
         first = PurpleRobotReading.objects.filter(user_id=self.hash_key).order_by('-logged').first()
 
@@ -184,7 +185,7 @@ class PurpleRobotDevice(models.Model):
 
         return perf_data['reading_counts'][probe]
 
-    def set_most_recent_reading(self, new_reading):
+    def set_most_recent_reading(self, new_reading): # pylint: disable=too-many-branches
         key = str(self.pk) + '-' + new_reading.probe
 
         perf_data = json.loads(self.performance_metadata)
@@ -435,7 +436,7 @@ class PurpleRobotDevice(models.Model):
 
             timestamp = calendar.timegm(reading.logged.timetuple())
 
-            if len(readings) == 0 or readings[-1]['level'] != data['level'] or (timestamp - readings[-1]['timestamp']) > (30 * 60):
+            if len(readings) == 0 or readings[-1]['level'] != data['level'] or (timestamp - readings[-1]['timestamp']) > (30 * 60): # pylint: disable=len-as-condition
                 item = {'level': data['level'], 'timestamp': timestamp}
 
             readings.append(item)
@@ -514,7 +515,7 @@ class PurpleRobotDevice(models.Model):
 
             start += 250
 
-        if len(deltas) > 0:
+        if deltas:
             return numpy.mean(deltas) * 100
 
         return -1
@@ -551,7 +552,7 @@ class PurpleRobotDevice(models.Model):
 
             timestamp = calendar.timegm(reading.logged.timetuple())
 
-            if len(readings) == 0 or readings[-1]['count'] != data['PENDING_COUNT'] or (timestamp - readings[-1]['timestamp']) > (30 * 60):
+            if len(readings) == 0 or readings[-1]['count'] != data['PENDING_COUNT'] or (timestamp - readings[-1]['timestamp']) > (30 * 60): # pylint: disable=len-as-condition
                 item = {'count': data['PENDING_COUNT'], 'timestamp': timestamp}
 
             readings.append(item)
@@ -920,7 +921,7 @@ class PurpleRobotDevice(models.Model):
 
         status['num_samples'] = len(samples)
 
-        if len(samples) > 0:
+        if samples:
             readings_start = arrow.get(samples[0]['sample_date']).datetime
             readings_end = arrow.get(samples[-1]['sample_date']).datetime
 
@@ -970,7 +971,7 @@ class PurpleRobotPayload(models.Model):
 
     errors = models.TextField(max_length=65536, null=True, blank=True)
 
-    def ingest_readings(self):
+    def ingest_readings(self): # pylint: disable=too-many-branches, too-many-statements
         tags = self.process_tags
 
         tag = 'extracted_readings'
@@ -982,7 +983,7 @@ class PurpleRobotPayload(models.Model):
         if device is not None:
             device.set_most_recent_payload(self)
 
-        for item in items:
+        for item in items: # pylint: disable=too-many-nested-blocks
             try:
                 reading = PurpleRobotReading(probe=item['PROBE'], user_id=self.user_id)
                 reading.payload = json.dumps(item, indent=2)
@@ -1031,13 +1032,13 @@ class PurpleRobotPayload(models.Model):
                 print 'Missing Key: ' + json.dumps(item, indent=2)
                 print traceback.format_exc()
 
-                if tags is None or len(tags) == 0:
+                if tags is None or len(tags) == 0: # pylint: disable=len-as-condition
                     tags = 'ingest_error'
                 elif tags.find('ingest_error') == -1:
                     tags += ' ingest_error'
 
         if tags is None or tags.find(tag) == -1:
-            if tags is None or len(tags) == 0:
+            if tags is None or len(tags) == 0: # pylint: disable=len-as-condition
                 tags = tag
             else:
                 tags += ' ' + tag
@@ -1077,8 +1078,8 @@ class PurpleRobotEvent(models.Model):
         elif self.event == 'set_user_id':
             if 'new_id' in payload:
                 return SafeString(payload['old_id'] + ' &rarr; ' + payload['new_id'])
-            else:
-                return SafeString(payload['old_id'] + ' &rarr; ?')
+
+            return SafeString(payload['old_id'] + ' &rarr; ?')
         elif self.event == 'java_exception':
             return payload['stacktrace'].split('\n')[0]
         elif self.event == 'broadcast_message':
@@ -1195,7 +1196,7 @@ class PurpleRobotTest(models.Model):
 
         return delta.total_seconds()
 
-    def update(self, days=1):
+    def update(self, days=1): # pylint: disable=too-many-branches, too-many-statements, too-many-locals
         report = json.loads(self.report)
 
         report_end = time.time()
@@ -1443,7 +1444,7 @@ class PurpleRobotTest(models.Model):
             for reading in readings:
                 timestamps.append(reading[0])
 
-            if len(timestamps) > 0:
+            if timestamps:
                 return datetime.datetime.fromtimestamp(timestamps[-1])
 
         return None

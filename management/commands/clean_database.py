@@ -5,8 +5,7 @@ import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from purple_robot_app.models import PurpleRobotReading, PurpleRobotEvent, \
-                                    PurpleRobotPayload
+from ...models import PurpleRobotReading, PurpleRobotEvent, PurpleRobotPayload
 
 DAYS_KEPT = 21
 

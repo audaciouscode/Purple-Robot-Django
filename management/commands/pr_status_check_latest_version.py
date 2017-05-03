@@ -6,8 +6,8 @@ from BeautifulSoup import BeautifulSoup
 
 from django.core.management.base import BaseCommand
 
-from purple_robot_app.models import PurpleRobotDevice
-from purple_robot_app.management.commands.pr_check_status import log_alert, cancel_alert
+from ...models import PurpleRobotDevice
+from ...management.commands.pr_check_status import log_alert, cancel_alert
 
 TAG = 'running_latest_version'
 
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             changes = soup.findAll('div', {'class': 'recent-change'})
 
             for change in changes:
-                if len(changelog) > 0:
+                if changelog:
                     changelog += '\n'
 
                 changelog += change.contents[0].strip()

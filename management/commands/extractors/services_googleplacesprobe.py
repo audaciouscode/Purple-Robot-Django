@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long, too-many-boolean-expressions
 
 import datetime
 import json
@@ -14,7 +14,7 @@ CREATE_PROBE_UTC_LOGGED_INDEX = 'CREATE INDEX ON services_googleplacesprobe(utc_
 def exists(connection_str, user_id, reading):
     conn = psycopg2.connect(connection_str)
 
-    if probe_table_exists(conn) == False:
+    if probe_table_exists(conn) is False:
         conn.close()
         return False
 
@@ -45,7 +45,7 @@ def insert(connection_str, user_id, reading, check_exists=True):
     conn = psycopg2.connect(connection_str)
     cursor = conn.cursor()
 
-    if check_exists and probe_table_exists(conn) == False:
+    if check_exists and probe_table_exists(conn) is False:
         cursor.execute(CREATE_PROBE_TABLE_SQL)
         cursor.execute(CREATE_PROBE_USER_ID_INDEX)
         cursor.execute(CREATE_PROBE_GUID_INDEX)

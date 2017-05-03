@@ -1,8 +1,6 @@
-# pylint: disable=line-too-long, unused-argument
+# pylint: disable=unused-argument,line-too-long
 
 import json
-
-
 
 def format_reading(probe_name, json_payload):
     item = json.loads(json_payload)
@@ -34,4 +32,8 @@ def visualize(probe_name, readings):
 #        rep_dict["x"] = timestamp
 #        report.append(rep_dict)
 #
-#    return render_to_string('visualization_device.html', { 'probe_name' : probe_name, 'readings' : readings, 'device_report' : json.dumps(report) })
+#    return render_to_string('visualization_device.html', {
+#        'probe_name': probe_name,
+#        'readings': readings,
+#        'device_report': json.dumps(report)
+#    })

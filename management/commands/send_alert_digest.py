@@ -7,11 +7,11 @@ from django.core.management.base import BaseCommand
 from django.template import Context
 from django.template.loader import render_to_string
 
-from purple_robot_app.models import PurpleRobotAlert, PurpleRobotDevice
+from ...models import PurpleRobotAlert, PurpleRobotDevice
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options): # pylint: disable=too-many-locals
         group = Group.objects.filter(name=settings.PURPLE_ROBOT_ADMIN_GROUP).first()
 
         if group is not None:
@@ -27,7 +27,7 @@ class Command(BaseCommand):
             context = Context()
             context['alerts'] = alerts
 
-            if alerts.count() > 0 and len(recipient_list) > 0:
+            if alerts.count() > 0 and recipient_list:
                 from_addr = settings.PURPLE_ROBOT_EMAIL_SENDER
 
                 devices = {}

@@ -41,10 +41,10 @@ def visualize(probe_name, readings):
 
     report = []
 
-    for key in point_counter.keys():
-        count = len(point_counter[key])
-        latitude = round(point_counter[key][0]['LATITUDE'], 5)
-        longitude = round(point_counter[key][0]['LONGITUDE'], 5)
+    for key, value in point_counter.iteritems():
+        count = len(value)
+        latitude = round(value[0]['LATITUDE'], 5)
+        longitude = round(value[0]['LONGITUDE'], 5)
 
         report_item = {}
 
@@ -54,4 +54,8 @@ def visualize(probe_name, readings):
 
         report.append(report_item)
 
-    return render_to_string('visualization_fusedlocationprobe.html', {'probe_name': probe_name, 'readings': readings, 'heat_report':  json.dumps(report, indent=2)})
+    return render_to_string('visualization_fusedlocationprobe.html', {
+        'probe_name': probe_name,
+        'readings': readings,
+        'heat_report': json.dumps(report, indent=2)
+    })
