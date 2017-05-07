@@ -8,11 +8,12 @@ import cPickle as pickle
 
 import arrow
 
-from django.conf import settings
 from django.utils import timezone
 
 
 def append_performance_sample(user, item, detail_date=timezone.now(), value=''):
+    from django.conf import settings
+
     os.umask(000)
 
     today = datetime.date.today()
@@ -42,6 +43,8 @@ def append_performance_sample(user, item, detail_date=timezone.now(), value=''):
 
 
 def fetch_performance_samples(user, item, start=None, end=None):
+    from django.conf import settings
+    
     if end is None:
         end = timezone.now()
 
@@ -79,6 +82,8 @@ def fetch_performance_samples(user, item, start=None, end=None):
 
 
 def fetch_performance_users():
+    from django.conf import settings
+
     items_path = settings.MEDIA_ROOT + '/purple_robot_analytics/'
 
     users = {}
