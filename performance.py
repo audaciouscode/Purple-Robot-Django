@@ -11,8 +11,11 @@ import arrow
 from django.utils import timezone
 
 
-def append_performance_sample(user, item, detail_date=timezone.now(), value=''):
+def append_performance_sample(user, item, detail_date=None, value=''):
     from django.conf import settings
+
+    if detail_date is None:
+        detail_date = timezone.now()
 
     os.umask(000)
 
@@ -43,8 +46,6 @@ def append_performance_sample(user, item, detail_date=timezone.now(), value=''):
 
 
 def fetch_performance_samples(user, item, start=None, end=None):
-    from django.conf import settings
-    
     if end is None:
         end = timezone.now()
 
@@ -58,6 +59,8 @@ def fetch_performance_samples(user, item, start=None, end=None):
     samples = []
 
     while start_date <= end_date:
+        from django.conf import settings
+
         item_path = settings.MEDIA_ROOT + '/purple_robot_analytics/' + user + '/' + start_date.isoformat() + '/' + item + '.pickle'
 
         if os.path.exists(item_path):
