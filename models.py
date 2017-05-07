@@ -13,7 +13,6 @@ import arrow
 import numpy
 import pytz
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models, connection
 from django.db.models import Sum
@@ -972,6 +971,8 @@ class PurpleRobotPayload(models.Model):
     errors = models.TextField(max_length=65536, null=True, blank=True)
 
     def ingest_readings(self): # pylint: disable=too-many-branches, too-many-statements
+        from django.conf import settings
+
         tags = self.process_tags
 
         tag = 'extracted_readings'
