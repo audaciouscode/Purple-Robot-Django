@@ -392,6 +392,9 @@ class PurpleRobotDevice(models.Model):
     def last_upload_status(self):
         upload = self.last_upload()
 
+        if upload is None:
+            return "danger"
+
         now = timezone.now()
 
         diff = now - upload
@@ -405,6 +408,9 @@ class PurpleRobotDevice(models.Model):
 
     def config_last_fetched_status(self):
         upload = self.config_last_fetched
+
+        if upload is None:
+            return "danger"
 
         now = timezone.now()
 
