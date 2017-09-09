@@ -12,7 +12,11 @@ service:
 
 addons:
   postgresql: 9.5
-  
+  apt:
+    packages:
+    - postgresql-9.5-postgis-scripts
+    - postgresql-9.5-postgis-2.3
+
 before_install:
   - export PYTHONPATH=$HOME/builds/audaciouscode/pr
   
