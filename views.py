@@ -198,11 +198,7 @@ def log_event(request):
 @staff_member_required
 @never_cache
 def test_report(request, slug):
-    context = {}
-
-    context['test'] = get_object_or_404(PurpleRobotTest, slug=slug)
-
-    return render(request, 'purple_robot_test.html', context)
+    return render(request, 'purple_robot_test.html', {'test': get_object_or_404(PurpleRobotTest, slug=slug)})
 
 
 @staff_member_required
@@ -278,19 +274,19 @@ def pr_device_probe(request, device_id, probe_name):
     context['device'] = PurpleRobotDevice.objects.get(device_id=device_id)
     context['probe_name'] = probe_name
     context['short_name'] = probe_name.split('.')[-1]
-    context['last_reading'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash, probe=probe_name).order_by('-logged').first()
-    context['test'] = PurpleRobotTest.objects.filter(user_id=context['device'].user_hash, probe=probe_name).first()
-    context['last_readings'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash, probe=probe_name).order_by('-logged')[:500]
+    context['last_reading'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).order_by('-logged').first()
+    context['test'] = PurpleRobotTest.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).first()
+    context['last_readings'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).order_by('-logged')[:500]
     context['visualization'] = context['device'].visualization_for_probe(probe_name)
 
     try:
         context['pr_show_device_id_header'] = settings.PURPLE_ROBOT_SHOW_DEVICE_ID_HEADER
-    except KeyError:
+    except AttributeError:
         context['pr_show_device_id_header'] = True
 
     try:
         context['pr_show_notes'] = settings.PURPLE_ROBOT_SHOW_NOTES
-    except KeyError:
+    except AttributeError:
         context['pr_show_notes'] = True
 
     return render(request, 'purple_robot_device_probe.html', context)

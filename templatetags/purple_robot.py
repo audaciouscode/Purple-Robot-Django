@@ -52,7 +52,6 @@ class CustomNavbarNode(template.Node):
         return render_to_string('tag_pr_device_custom_navbar_default.html', \
                                 context=context.flatten(), request=context.request)
 
-
 @register.tag(name="pr_home_custom_console")
 def tag_pr_home_custom_console(parser, token): # pylint: disable=unused-argument
     return HomeCustomConsoleNode()

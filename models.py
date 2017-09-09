@@ -175,7 +175,7 @@ class PurpleRobotDevice(models.Model):
 
         if (probe in perf_data['reading_counts']) is False:
             cursor = connection.cursor()
-            cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_app_purplerobotreading\" WHERE (\"purple_robot_app_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_app_purplerobotreading\".\"user_id\" = '%s' );" % (probe, self.hash_key))
+            cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_purplerobotreading\" WHERE (\"purple_robot_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_purplerobotreading\".\"user_id\" = '%s' );" % (probe, self.hash_key))
             row = cursor.fetchone()
             perf_data['reading_counts'][probe] = int(row[0])
 
@@ -397,14 +397,17 @@ class PurpleRobotDevice(models.Model):
 
         now = timezone.now()
 
-        diff = now - upload
+        if upload is not None:
+            diff = now - upload
 
-        if diff.days > 0:
-            return "danger"
-        elif diff.seconds > (8 * 60 * 60):
-            return "warning"
+            if diff.days > 0:
+                return "danger"
+            elif diff.seconds > (8 * 60 * 60):
+                return "warning"
 
-        return "ok"
+            return "ok"
+
+        return "danger"
 
     def config_last_fetched_status(self):
         upload = self.config_last_fetched
@@ -414,14 +417,17 @@ class PurpleRobotDevice(models.Model):
 
         now = timezone.now()
 
-        diff = now - upload
+        if upload is not None:
+            diff = now - upload
 
-        if diff.days > 1:
-            return "danger"
-        elif diff.days > 0:
-            return "warning"
+            if diff.days > 1:
+                return "danger"
+            elif diff.days > 0:
+                return "warning"
 
-        return "ok"
+            return "ok"
+
+        return "danger"
 
     def battery_history(self, start=None, end=None):
         self.init_hash()
@@ -756,7 +762,7 @@ class PurpleRobotDevice(models.Model):
 
                 if omit_readings is False:
                     # cursor = connection.cursor()
-                    # cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_app_purplerobotreading\" WHERE (\"purple_robot_app_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_app_purplerobotreading\".\"user_id\" = '%s' );" % (item.probe, self.hash_key))
+                    # cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_purplerobotreading\" WHERE (\"purple_robot_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_purplerobotreading\".\"user_id\" = '%s' );" % (item.probe, self.hash_key))
                     # row = cursor.fetchone()
                     # reading['num_readings'] = self.fetch_reading_count(probe_name)
                     # reading['num_readings'] = 0
@@ -887,11 +893,11 @@ class PurpleRobotDevice(models.Model):
         formatter_name = my_slugify(probe_name).replace('edu_northwestern_cbits_purple_robot_manager_probes_', '')
 
         try:
-            formatter = importlib.import_module('purple_robot_app.formatters.' + formatter_name)
+            formatter = importlib.import_module('purple_robot.formatters.' + formatter_name)
         except ImportError:
-            formatter = importlib.import_module('purple_robot_app.formatters.probe')
+            formatter = importlib.import_module('purple_robot.formatters.probe')
 
-        readings = PurpleRobotReading.objects.filter(user_id=self.user_hash, probe=probe_name).order_by('-logged')[:500]
+        readings = PurpleRobotReading.objects.filter(user_id=self.user_hash(), probe=probe_name).order_by('-logged')[:500]
 
         return formatter.visualize(probe_name, readings)
 
@@ -1024,13 +1030,13 @@ class PurpleRobotPayload(models.Model):
                         for app in settings.INSTALLED_APPS:
                             if found is False:
                                 try:
-                                    probe = importlib.import_module(app + '.management.commands.analytics.' + probe_name)
+                                    probe = importlib.import_module(app + 'purple_robot.management.commands.analytics.' + probe_name)
                                     found = True
                                 except ImportError:
                                     pass
 
                         if found is False:
-                            probe = importlib.import_module('purple_robot_app.management.commands.analytics.generic_probe')
+                            probe = importlib.import_module('purple_robot.management.commands.analytics.generic_probe')
 
                     PAYLOAD_PERFORMANCE_CACHE[probe_name] = probe
                     probe.log_reading(reading)
@@ -1128,9 +1134,9 @@ class PurpleRobotReading(models.Model):
         probe_name = my_slugify(self.probe).replace('edu_northwestern_cbits_purple_robot_manager_probes_', '')
 
         try:
-            formatter = importlib.import_module('purple_robot_app.formatters.' + probe_name)
+            formatter = importlib.import_module('purple_robot.formatters.' + probe_name)
         except ImportError:
-            formatter = importlib.import_module('purple_robot_app.formatters.probe')
+            formatter = importlib.import_module('purple_robot.formatters.probe')
 
         return formatter.format_reading(probe_name, self.payload)
 
