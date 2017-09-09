@@ -8,7 +8,6 @@ from django.core.files import File
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-from django.template import Context
 from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
 
@@ -93,7 +92,7 @@ class Command(BaseCommand):
             job.save()
 
             if job.destination is not None and job.destination != '':
-                context = Context()
+                context = {}
                 context['job'] = job
                 context['prefix'] = settings.URL_PREFIX
 

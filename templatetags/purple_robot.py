@@ -48,7 +48,7 @@ class CustomNavbarNode(template.Node):
         except AttributeError:
             pass
 
-        return render_to_string('tag_pr_device_custom_navbar_default.html', context)
+        return render_to_string('tag_pr_device_custom_navbar_default.html', context.flatten())
 
 
 @register.tag(name="pr_home_custom_console")
@@ -112,7 +112,7 @@ class GroupTableNode(template.Node):
         else:
             context['device_group_devices'] = list(PurpleRobotDevice.objects.filter(device_group=None).order_by('name', 'device_id')) # pylint: disable=line-too-long
 
-        return render_to_string('tag_pr_group_table.html', context)
+        return render_to_string('tag_pr_group_table.html', context.flatten())
 
 
 @register.tag(name="pr_timestamp_ago")
@@ -157,7 +157,7 @@ class TimestampAgoNode(template.Node):
         context['ago'] = ago_str
         context['date'] = date_obj
 
-        return render_to_string('tag_pr_date_ago.html', context)
+        return render_to_string('tag_pr_date_ago.html', context.flatten())
 
 
 @register.tag(name="pr_date_ago")
@@ -200,7 +200,7 @@ class DateAgoNode(template.Node):
         context['ago'] = ago_str
         context['date'] = date_obj
 
-        return render_to_string('tag_pr_date_ago.html', context)
+        return render_to_string('tag_pr_date_ago.html', context.flatten())
 
 
 @register.tag(name="pr_human_duration")
@@ -236,7 +236,7 @@ class HumanDurationNode(template.Node):
         context['human_duration'] = ago_str
         context['seconds'] = seconds_obj
 
-        return render_to_string('tag_pr_human_duration.html', context)
+        return render_to_string('tag_pr_human_duration.html', context.flatten())
 
 
 @register.tag(name="pr_frequency")
@@ -292,7 +292,7 @@ class FrequencyNode(template.Node):
         context['value'] = value
         context['tooltip'] = tooltip
 
-        return render_to_string('tag_pr_frequency.html', context)
+        return render_to_string('tag_pr_frequency.html', context.flatten())
 
 
 @register.tag(name="pr_device_alerts")
@@ -350,7 +350,7 @@ class DeviceAlertsNode(template.Node):
         context['value'] = alerts.count()
         context['tooltip'] = tooltip
 
-        return render_to_string('tag_pr_device_alerts.html', context)
+        return render_to_string('tag_pr_device_alerts.html', context.flatten())
 
 
 @register.tag(name="pr_data_size")

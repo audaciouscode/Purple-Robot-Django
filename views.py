@@ -13,8 +13,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, UnreadablePostError
-from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -199,17 +198,13 @@ def log_event(request):
 @staff_member_required
 @never_cache
 def test_report(request, slug):
-    context = RequestContext(request)
-
-    context['test'] = get_object_or_404(PurpleRobotTest, slug=slug)
-
-    return render_to_response('purple_robot_test.html', context)
+    return render(request, 'purple_robot_test.html', {'test': get_object_or_404(PurpleRobotTest, slug=slug)})
 
 
 @staff_member_required
 @never_cache
 def tests_by_user(request, user_id):
-    context = RequestContext(request)
+    context = {}
 
     context['tests'] = PurpleRobotTest.objects.filter(user_id=user_id)
     context['user_id'] = user_id
@@ -220,13 +215,13 @@ def tests_by_user(request, user_id):
         if test.active and test.passes() is False:
             context['success'] = False
 
-    return render_to_response('purple_robot_tests.html', context)
+    return render(request, 'purple_robot_tests.html', context)
 
 
 @staff_member_required
 @never_cache
 def tests_all(request):
-    context = RequestContext(request)
+    context = {}
 
     context['tests'] = PurpleRobotTest.objects.order_by('-last_updated')
     context['user_id'] = 'All'
@@ -237,18 +232,18 @@ def tests_all(request):
         if test.active and test.passes() is False:
             context['success'] = False
 
-    return render_to_response('purple_robot_tests.html', context)
+    return render(request, 'purple_robot_tests.html', context)
 
 
 @staff_member_required
 @never_cache
 def pr_home(request):
-    context = RequestContext(request)
+    context = {}
 
     context['device_groups'] = PurpleRobotDeviceGroup.objects.all()
     context['unattached_devices'] = PurpleRobotDevice.objects.filter(device_group=None)
 
-    return render_to_response('purple_robot_home.html', context)
+    return render(request, 'purple_robot_home.html', context)
 
 
 @staff_member_required
@@ -268,39 +263,39 @@ def pr_device(request, device_id): # pylint: disable=unused-argument
     except KeyError:
         context['pr_show_notes'] = True
 
-    return render_to_response('purple_robot_device.html', context)
+    return render(request, 'purple_robot_device.html', context)
 
 
 @staff_member_required
 @never_cache
 def pr_device_probe(request, device_id, probe_name):
-    context = RequestContext(request)
+    context = {}
 
     context['device'] = PurpleRobotDevice.objects.get(device_id=device_id)
     context['probe_name'] = probe_name
     context['short_name'] = probe_name.split('.')[-1]
-    context['last_reading'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash, probe=probe_name).order_by('-logged').first()
-    context['test'] = PurpleRobotTest.objects.filter(user_id=context['device'].user_hash, probe=probe_name).first()
-    context['last_readings'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash, probe=probe_name).order_by('-logged')[:500]
+    context['last_reading'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).order_by('-logged').first()
+    context['test'] = PurpleRobotTest.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).first()
+    context['last_readings'] = PurpleRobotReading.objects.filter(user_id=context['device'].user_hash(), probe=probe_name).order_by('-logged')[:500]
     context['visualization'] = context['device'].visualization_for_probe(probe_name)
 
     try:
         context['pr_show_device_id_header'] = settings.PURPLE_ROBOT_SHOW_DEVICE_ID_HEADER
-    except KeyError:
+    except AttributeError:
         context['pr_show_device_id_header'] = True
 
     try:
         context['pr_show_notes'] = settings.PURPLE_ROBOT_SHOW_NOTES
-    except KeyError:
+    except AttributeError:
         context['pr_show_notes'] = True
 
-    return render_to_response('purple_robot_device_probe.html', context)
+    return render(request, 'purple_robot_device_probe.html', context)
 
 
 @staff_member_required
 @never_cache
 def pr_by_probe(request): # pylint: disable=unused-argument
-    return render_to_response('purple_robot_probe.html')
+    return render(request, 'purple_robot_probe.html')
 
 
 @staff_member_required
@@ -323,10 +318,10 @@ def pr_by_user(request):
 
         users[user_id] = user_dict
 
-    context = RequestContext(request)
+    context = {}
     context['users'] = users
 
-    return render_to_response('purple_robot_user.html', context)
+    return render(request, 'purple_robot_user.html', context)
 
 
 @staff_member_required
@@ -433,7 +428,7 @@ def fetch_export_file(request, job_pk): # pylint: disable=unused-argument
 @staff_member_required
 @never_cache
 def create_export_job(request):
-    context = RequestContext(request)
+    context = {}
 
     context['form'] = ExportJobForm()
 
@@ -471,7 +466,7 @@ def create_export_job(request):
         else:
             context['form'] = form
 
-    return render_to_response('purple_robot_export.html', context)
+    return render(request, 'purple_robot_export.html', context)
 
 
 @staff_member_required
@@ -550,7 +545,7 @@ def pr_configurations(request): # pylint: disable=unused-argument
 
     context['configurations'] = PurpleRobotConfiguration.objects.all()
 
-    return render_to_response('purple_robot_configurations.html', context)
+    return render(request, 'purple_robot_configurations.html', context)
 
 
 @staff_member_required
@@ -560,7 +555,7 @@ def pr_configuration(request, config_id): # pylint: disable=unused-argument
 
     context['config'] = get_object_or_404(PurpleRobotConfiguration, slug=config_id)
 
-    return render_to_response('purple_robot_configuration.html', context)
+    return render(request, 'purple_robot_configuration.html', context)
 
 
 @staff_member_required
@@ -698,7 +693,7 @@ def pr_status(request): # pylint: disable=unused-argument, too-many-branches, to
     if hour_items:
         context['mirror_average_hour'] = numpy.mean(hour_items)
 
-    return render_to_response('purple_robot_status.html', context)
+    return render(request, 'purple_robot_status.html', context)
 
 
 @staff_member_required
@@ -717,4 +712,4 @@ def pr_users(request): # pylint: disable=unused-argument
 
     context['phantoms'] = phantoms
 
-    return render_to_response('purple_robot_users.html', context)
+    return render(request, 'purple_robot_users.html', context)
