@@ -1,36 +1,16 @@
 # pylint: disable=line-too-long, no-member
 
-import datetime
-import os
-
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from ...decorators import handle_lock
 from ...models import PurpleRobotReading, PurpleRobotPayload
 from ...performance import append_performance_sample
 
 
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
-
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/extract_readings.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/extract_readings.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 4 * 60 * 60:
-                print 'extract_readings: Stale lock - removing...'
-                os.remove('/tmp/extract_readings.lock')
-            else:
-                return
-
-        touch('/tmp/extract_readings.lock')
-
         tag = 'extracted_readings'
 
         start = timezone.now()
@@ -40,8 +20,6 @@ class Command(BaseCommand):
         query_time = (end - start).total_seconds()
 
         while payloads:
-            touch('/tmp/extract_readings.lock')
-
             start = timezone.now()
 
             for payload in payloads:
@@ -67,5 +45,3 @@ class Command(BaseCommand):
             reading.update_guid()
 
             readings = PurpleRobotReading.objects.filter(guid=None)[:250]
-
-        os.remove('/tmp/extract_readings.lock')

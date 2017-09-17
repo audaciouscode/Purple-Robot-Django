@@ -12,29 +12,12 @@ from django.utils import timezone
 
 from ...models import PurpleRobotPayload
 from ...performance import append_performance_sample
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
+from ...decorators import handle_lock
 
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-statements
-        if os.access('/tmp/gather_statistics.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/gather_statistics.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 6 * 60 * 60:
-                print 'gather_statistics: Stale lock - removing...'
-                os.remove('/tmp/gather_statistics.lock')
-            else:
-                return
-
-        touch('/tmp/gather_statistics.lock')
-
         here_tz = pytz.timezone(settings.TIME_ZONE)
         now = arrow.get(timezone.now().astimezone(here_tz))
 
@@ -103,7 +86,7 @@ class Command(BaseCommand):
             'less_hour_count': less_hour_count
         })
 
-        uptime = os.popen("/usr/bin/uptime").read()
+        uptime = os.popen("/usr/bin/uptime").read() # nosec
         uptime = uptime.split('load average: ')[1].split(" ")
 
         load_minute = float(uptime[0].replace(',', '').strip())
@@ -126,5 +109,3 @@ class Command(BaseCommand):
             index_time = end
 
         append_performance_sample('system', 'payload_uploads', timezone.now(), {'counts': counts})
-
-        os.remove('/tmp/gather_statistics.lock')

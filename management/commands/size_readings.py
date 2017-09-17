@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import os
 import time
 
 from django.core.management.base import BaseCommand
@@ -10,29 +9,12 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from ...models import PurpleRobotReading, PurpleRobotDevice
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
+from ...decorators import handle_lock
 
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/size_readings.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/size_readings.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 4 * 60 * 60:
-                print 'size_readings: Stale lock - removing...'
-                os.remove('/tmp/size_readings.lock')
-            else:
-                return
-
-        touch('/tmp/size_readings.lock')
-
         readings = list(PurpleRobotReading.objects.filter(size=0)[:1000])
         count = PurpleRobotReading.objects.filter(size=0).count()
 
@@ -47,8 +29,6 @@ class Command(BaseCommand):
                         pass  # No attachment...
 
                 reading.save()
-
-            touch('/tmp/size_readings.lock')
 
             count -= len(readings)
             readings = list(PurpleRobotReading.objects.filter(size=0)[:1000])
@@ -77,5 +57,3 @@ class Command(BaseCommand):
 
             device.performance_metadata = json.dumps(metadata, indent=2)
             device.save()
-
-        os.remove('/tmp/size_readings.lock')

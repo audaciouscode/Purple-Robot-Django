@@ -1,7 +1,6 @@
 # pylint: disable=line-too-long, no-member
 
 import datetime
-import os
 
 from sexpdata import Symbol, Quoted, car, cdr, loads
 
@@ -11,16 +10,10 @@ from django.utils import timezone
 from ...models import PurpleRobotDevice, PurpleRobotConfiguration
 from ...management.commands.pr_check_status import log_alert, cancel_alert
 from ...device_info import can_sense
+from ...decorators import handle_lock
 
 TAG = 'expected_probe_missing'
 START_DAYS = 7
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
 
 
 def enabled_probes(contents): # pylint: disable=too-many-branches
@@ -62,19 +55,8 @@ def enabled_probes(contents): # pylint: disable=too-many-branches
 
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches
-        if os.access('/tmp/expected_probe_missing_check.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/expected_probe_missing_check.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 60 * 60 * 4:
-                print 'expected_probe_missing_check: Stale lock - removing...'
-                os.remove('/tmp/expected_probe_missing_check.lock')
-            else:
-                return
-
-        touch('/tmp/expected_probe_missing_check.lock')
-
         start = timezone.now() - datetime.timedelta(days=START_DAYS)
 
         for device in PurpleRobotDevice.objects.filter(mute_alerts=False).order_by('device_id'):
@@ -96,8 +78,6 @@ class Command(BaseCommand):
                 log_alert(message='No configuration associated with ' + device.device_id + '.', severity=2, tags=TAG, user_id=device.hash_key)
             else:
                 config_probes = enabled_probes(loads(config.contents, true='#t', false='#f'))
-
-                touch('/tmp/expected_probe_missing_check.lock')
 
                 missing_probes = []
 
@@ -126,5 +106,3 @@ class Command(BaseCommand):
                         missing_probes_str = missing_probes_str + ', and ' + str(len(missing_probes) - 4) + ' more'
 
                     log_alert(message='Missing data from ' + str(len(missing_probes)) + ' probe(s). Absent probes: ' + missing_probes_str, severity=2, tags=TAG, user_id=device.hash_key)
-
-        os.remove('/tmp/expected_probe_missing_check.lock')

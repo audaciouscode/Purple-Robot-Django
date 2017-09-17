@@ -1,9 +1,7 @@
 # pylint: disable=line-too-long, no-member
 
-import datetime
 import hashlib
 import json
-import os
 
 import requests
 
@@ -13,20 +11,12 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from ...models import PurpleRobotPayload, PurpleRobotReading
+from ...decorators import handle_lock
 
 PRINT_PROGRESS = False
 
-# Via http://stackoverflow.com/questions/1158076/implement-touch-using-python
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
-
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         try:
             settings.PR_REDIRECT_ENDPOINT_MAP
@@ -34,18 +24,6 @@ class Command(BaseCommand):
             print 'PR_REDIRECT_ENDPOINT_MAP not defined in settings.py. Exiting...'
 
             return
-
-        if os.access('/tmp/reflected_payload.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/reflected_payload.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 60 * 60:
-                print 'reflect_payloads: Stale lock - removing...'
-                os.remove('/tmp/reflected_payload.lock')
-            else:
-                return
-
-        touch('/tmp/reflected_payload.lock')
 
         tag = 'reflected_payload'
 
@@ -71,11 +49,11 @@ class Command(BaseCommand):
                     payload['Payload'] = pr_payload.payload
                     payload['Operation'] = 'SubmitProbes'
 
-                    md5_hash = hashlib.md5()
+                    md5_hash = hashlib.md5() # nosec
                     md5_hash.update(config['new_id'].encode('utf-8'))
                     payload['UserHash'] = md5_hash.hexdigest()
 
-                    md5_hash = hashlib.md5()
+                    md5_hash = hashlib.md5() # nosec
                     md5_hash.update((payload['UserHash'] + payload['Operation'] + payload['Payload']).encode('utf-8'))
                     payload['Checksum'] = md5_hash.hexdigest()
 
@@ -96,7 +74,7 @@ class Command(BaseCommand):
                                     filename = pr_reading.attachment.name.split('/')[-1]
                                     files[pr_reading.guid] = (filename, pr_reading.attachment, reading_json['media_content_type'],)
                     try:
-                        response = requests.post(config['endpoint'], data=data, verify=False, timeout=120.0, files=files)
+                        response = requests.post(config['endpoint'], data=data, timeout=120.0, files=files)
 
                         response_obj = json.loads(response.text)
 
@@ -109,8 +87,6 @@ class Command(BaseCommand):
                         pass
                     except ReadTimeout:
                         pass
-
-                    touch('/tmp/reflected_payload.lock')
 
                 for primary_key in reflected_payloads:
                     pr_payload = PurpleRobotPayload.objects.get(pk=primary_key)
@@ -128,5 +104,3 @@ class Command(BaseCommand):
                         pr_payload.save()
 
                 payloads = list(PurpleRobotPayload.objects.filter(user_id=config['hash']).exclude(process_tags__contains=tag)[:50])
-
-        os.remove('/tmp/reflected_payload.lock')

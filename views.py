@@ -30,26 +30,23 @@ from .performance import fetch_performance_samples, fetch_performance_users
 def pr_config(request):
     config = None
 
+    device_id = request.GET['user_id']
+
+    device = PurpleRobotDevice.objects.get(device_id=device_id)
+
+    if device.configuration is not None:
+        config = device.configuration
+    elif device.device_group.configuration is not None:
+        config = device.device_group.configuration
+
+    device.config_last_fetched = datetime.datetime.now()
+
     try:
-        device_id = request.GET['user_id']
+        device.config_last_user_agent = request.META['HTTP_USER_AGENT']
+    except KeyError:
+        device.config_last_user_agent = 'Unknown'
 
-        device = PurpleRobotDevice.objects.get(device_id=device_id)
-
-        if device.configuration is not None:
-            config = device.configuration
-        elif device.device_group.configuration is not None:
-            config = device.device_group.configuration
-
-        device.config_last_fetched = datetime.datetime.now()
-
-        try:
-            device.config_last_user_agent = request.META['HTTP_USER_AGENT']
-        except KeyError:
-            device.config_last_user_agent = 'Unknown'
-
-        device.save()
-    except: # pylint: disable=bare-except
-        pass
+    device.save()
 
     if config is None:
         config = get_object_or_404(PurpleRobotConfiguration, slug='default')
@@ -77,7 +74,7 @@ def ingest_payload(request):
 
             payload_str = json_obj['Payload']
 
-            md5_hash = hashlib.md5()
+            md5_hash = hashlib.md5() # nosec
             md5_hash.update((json_obj['UserHash'] + json_obj['Operation'] + json_obj['Payload']).encode('utf-8'))
 
             checksum_str = md5_hash.hexdigest()
@@ -95,7 +92,7 @@ def ingest_payload(request):
                     payload = PurpleRobotPayload(payload=json.dumps(payload_json, indent=2, ensure_ascii=False), user_id=json_obj['UserHash'])
                     payload.save()
 
-                    md5_hash = hashlib.md5()
+                    md5_hash = hashlib.md5() # nosec
                     md5_hash.update(result['Status'] + result['Payload'])
 
                     result['Checksum'] = md5_hash.hexdigest()
@@ -137,7 +134,7 @@ def ingest_payload_print(request):
 
         json_obj = json.loads(json_str)
 
-        md5_hash = hashlib.md5()
+        md5_hash = hashlib.md5() # nosec
         md5_hash.update((json_obj['UserHash'] + json_obj['Operation'] + json_obj['Payload']).encode('utf-8'))
 
         checksum_str = md5_hash.hexdigest()
@@ -149,7 +146,7 @@ def ingest_payload_print(request):
         if checksum_str == json_obj['Checksum']:
             result['Status'] = 'success'
 
-            md5_hash = hashlib.md5()
+            md5_hash = hashlib.md5() # nosec
             md5_hash.update(result['Status'] + result['Payload'])
 
             result['Checksum'] = md5_hash.hexdigest()

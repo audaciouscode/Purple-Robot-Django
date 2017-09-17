@@ -18,7 +18,7 @@ class Command(BaseCommand):
                 # readings = PurpleRobotReading.objects.filter(user_id=user_id)
                 # print(user_id + ': ' + str(readings.count()))
 
-                md5_hash = hashlib.md5()
+                md5_hash = hashlib.md5() # nosec
                 md5_hash.update(user_id)
 
                 md5_id = md5_hash.hexdigest()

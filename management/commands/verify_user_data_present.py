@@ -9,7 +9,7 @@ from ...models import PurpleRobotReading
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        md5_hash = hashlib.md5()
+        md5_hash = hashlib.md5() # nosec
         md5_hash.update(args[0])
 
         user_id = md5_hash.hexdigest()
@@ -19,7 +19,7 @@ class Command(BaseCommand):
         print 'Readings for ' + args[0] + ': ' + str(count)
 
         if count == 0:
-            md5_hash = hashlib.md5()
+            md5_hash = hashlib.md5() # nosec
             md5_hash.update(args[0].lower())
 
             user_id = md5_hash.hexdigest()
