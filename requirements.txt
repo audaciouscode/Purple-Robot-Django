@@ -29,3 +29,4 @@ six==1.10.0
 smmap2==2.0.1
 stevedore==1.21.0
 wrapt==1.10.10
+lockfile==0.12.2
