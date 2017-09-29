@@ -1,7 +1,5 @@
 # pylint: disable=line-too-long, no-member, invalid-name
 
-import os
-
 from collections import namedtuple
 
 from django.core.management.base import BaseCommand
@@ -9,15 +7,11 @@ from django.test.client import RequestFactory
 
 from ...models import PurpleRobotDevice
 from ...views import pr_device
-
+from ...decorators import handle_lock
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/refresh_device_pages.lock', os.R_OK):
-            return
-
-        open('/tmp/refresh_device_pages.lock', 'w').close()
-
         FakeRequest = namedtuple('FakeRequest', ['is_active', 'is_staff'])
 
         factory = RequestFactory()
@@ -27,5 +21,3 @@ class Command(BaseCommand):
 
         for device in PurpleRobotDevice.objects.all():
             pr_device(request, device.device_id)
-
-        os.remove('/tmp/refresh_device_pages.lock')

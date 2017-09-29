@@ -1,22 +1,12 @@
 # pylint: disable=line-too-long, no-member
 
-import os
-import datetime
-
 from django.core.management import call_command, get_commands
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
 
 from ...models import PurpleRobotAlert, PurpleRobotDevice
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
+from ...decorators import handle_lock
 
 def fetch_query(message=None, severity=None, tags=None, user_id=None, probe=None, dismissed=False): # pylint: disable=too-many-arguments
     query = Q(dismissed=None)
@@ -76,30 +66,15 @@ def cancel_alert(message=None, severity=None, tags=None, user_id=None, probe=Non
 
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/check_status.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/check_status.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 6 * 60 * 60:
-                print 'check_status: Stale lock - removing...'
-                os.remove('/tmp/check_status.lock')
-            else:
-                return
-
-        touch('/tmp/check_status.lock')
-
         command_names = get_commands().keys()
 
         for command_name in command_names:
             if command_name.startswith('pr_status_check_'):
                 call_command(command_name)
 
-            touch('/tmp/check_status.lock')
-
         for device in PurpleRobotDevice.objects.filter(mute_alerts=True):
             for alert in PurpleRobotAlert.objects.filter(user_id=device.hash_key, dismissed=None):
                 alert.dismissed = timezone.now()
                 alert.save()
-
-        os.remove('/tmp/check_status.lock')

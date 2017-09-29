@@ -109,7 +109,7 @@ class PurpleRobotDevice(models.Model):
 
     def init_hash(self):
         if self.hash_key is None or len(self.hash_key) < 32:
-            md5_hash = hashlib.md5()
+            md5_hash = hashlib.md5() # nosec
             md5_hash.update(self.device_id.encode('utf-8'))
 
             self.hash_key = md5_hash.hexdigest()
@@ -175,7 +175,7 @@ class PurpleRobotDevice(models.Model):
 
         if (probe in perf_data['reading_counts']) is False:
             cursor = connection.cursor()
-            cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_purplerobotreading\" WHERE (\"purple_robot_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_purplerobotreading\".\"user_id\" = '%s' );" % (probe, self.hash_key))
+            cursor.execute("SELECT COUNT(logged) FROM \"purple_robot_purplerobotreading\" WHERE (\"purple_robot_purplerobotreading\".\"probe\" = '%s' AND \"purple_robot_purplerobotreading\".\"user_id\" = '%s' );" % (probe, self.hash_key)) # nosec
             row = cursor.fetchone()
             perf_data['reading_counts'][probe] = int(row[0])
 

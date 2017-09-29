@@ -1,10 +1,9 @@
 # pylint: disable=line-too-long, bare-except
 
 import datetime
-# import msgpack
 import os
 
-import cPickle as pickle
+import cPickle as pickle # nosec
 
 import arrow
 
@@ -33,10 +32,7 @@ def append_performance_sample(user, item, detail_date=None, value=''):
     if os.path.exists(item_path):
         pickle_file = open(item_path, 'rb')
 
-        try:
-            content = pickle.load(pickle_file)
-        except:
-            pass
+        content = pickle.load(pickle_file) # nosec
 
         pickle_file.close()
 
@@ -66,7 +62,7 @@ def fetch_performance_samples(user, item, start=None, end=None):
         if os.path.exists(item_path):
             pickle_file = open(item_path, 'rb')
 
-            content = pickle.load(pickle_file)
+            content = pickle.load(pickle_file) # nosec
 
             for key, value in content.iteritems():
                 sample_date = arrow.get(key).datetime

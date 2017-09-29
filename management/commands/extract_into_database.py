@@ -3,7 +3,6 @@
 import datetime
 import json
 import importlib
-import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -12,6 +11,7 @@ from django.utils.text import slugify
 
 from ...models import PurpleRobotPayload
 from ...performance import append_performance_sample
+from ...decorators import handle_lock
 
 EXTRACTORS = {}
 
@@ -20,31 +20,13 @@ def my_slugify(str_obj):
     return slugify(str_obj.replace('.', ' ')).replace('-', '_')
 
 
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
-
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options): # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         try:
             settings.PURPLE_ROBOT_FLAT_MIRROR
         except AttributeError:
             return
-
-        if os.access('/tmp/extract_into_database.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/extract_into_database.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 60 * 60 * 8:
-                print 'extract_into_database: Stale lock - removing...'
-                os.remove('/tmp/extract_into_database.lock')
-            else:
-                return
-
-        touch('/tmp/extract_into_database.lock')
 
         tag = 'extracted_into_database'
         skip_tag = 'extracted_into_database_skip'
@@ -63,8 +45,6 @@ class Command(BaseCommand):
         local_app = 0.0
 
         while payloads: # pylint: disable=too-many-nested-blocks
-            touch('/tmp/extract_into_database.lock')
-
             extractor_times = {}
             extractor_counts = {}
 
@@ -214,5 +194,3 @@ class Command(BaseCommand):
             payloads = list(PurpleRobotPayload.objects.exclude(process_tags__contains=tag).exclude(process_tags__contains=skip_tag).order_by('-added')[:250])
             end = timezone.now()
             query_time = (end - start).total_seconds()
-
-        os.remove('/tmp/extract_into_database.lock')

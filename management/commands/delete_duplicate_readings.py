@@ -1,34 +1,13 @@
 # pylint: disable=line-too-long, no-member
 
-import datetime
-import os
-
 from django.core.management.base import BaseCommand
 
 from ...models import PurpleRobotReading, PurpleRobotDevice
-
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
+from ...decorators import handle_lock
 
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/delete_duplicate_readings.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/delete_duplicate_readings.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 120:
-                print 'delete_duplicate_readings: Stale lock - removing...'
-                os.remove('/tmp/delete_duplicate_readings.lock')
-            else:
-                return
-
-        touch('/tmp/delete_duplicate_readings.lock')
-
         for device in PurpleRobotDevice.objects.all().order_by('device_id'):
             guids = PurpleRobotReading.objects.filter(user_id=device.hash_key).order_by('guid').values_list('guid', flat=True).distinct()
 
@@ -39,5 +18,3 @@ class Command(BaseCommand):
                     if count > 1:
                         for match in PurpleRobotReading.objects.filter(guid=guid)[1:]:
                             match.delete()
-
-        os.remove('/tmp/delete_duplicate_readings.lock')

@@ -1,0 +1,3 @@
+[bandit]
+exclude: /purple_robot/management/commands/extractors
+

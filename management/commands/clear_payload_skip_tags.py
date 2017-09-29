@@ -1,40 +1,19 @@
 # pylint: disable=line-too-long, no-member
 
-import datetime
-import os
-
 import requests
 
 from django.core.management.base import BaseCommand
 
 from ...models import PurpleRobotPayload
+from ...decorators import handle_lock
 
 PRINT_PROGRESS = False
 
 SKIP_TAG = 'extracted_into_database_skip'
 
-
-def touch(fname, mode=0o666):
-    flags = os.O_CREAT | os.O_APPEND
-
-    if os.fdopen(os.open(fname, flags, mode)) is not None:
-        os.utime(fname, None)
-
-
 class Command(BaseCommand):
+    @handle_lock
     def handle(self, *args, **options):
-        if os.access('/tmp/clear_payload_skip_tags.lock', os.R_OK):
-            timestamp = os.path.getmtime('/tmp/clear_payload_skip_tags.lock')
-            created = datetime.datetime.fromtimestamp(timestamp)
-
-            if (datetime.datetime.now() - created).total_seconds() > 300:
-                print 'clear_payload_skip_tags: Stale lock - removing...'
-                os.remove('/tmp/clear_payload_skip_tags.lock')
-            else:
-                return
-
-        touch('/tmp/clear_payload_skip_tags.lock')
-
         requests.packages.urllib3.disable_warnings()
 
         payloads = list(PurpleRobotPayload.objects.filter(process_tags__contains=SKIP_TAG).order_by('-added')[:250])
@@ -52,10 +31,6 @@ class Command(BaseCommand):
 
                 payload.process_tags = payload.process_tags.strip()
 
-                touch('/tmp/clear_payload_skip_tags.lock')
-
                 payload.save()
 
             payloads = list(PurpleRobotPayload.objects.filter(process_tags__contains=SKIP_TAG).order_by('-added')[:250])
-
-        os.remove('/tmp/clear_payload_skip_tags.lock')
