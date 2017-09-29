@@ -95,7 +95,7 @@ class Command(BaseCommand):
             if command_name.startswith('pr_status_check_'):
                 call_command(command_name)
 
-        touch('/tmp/check_status.lock')
+            touch('/tmp/check_status.lock')
 
         for device in PurpleRobotDevice.objects.filter(mute_alerts=True):
             for alert in PurpleRobotAlert.objects.filter(user_id=device.hash_key, dismissed=None):

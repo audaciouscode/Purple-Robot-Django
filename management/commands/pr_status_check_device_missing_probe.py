@@ -58,6 +58,12 @@ def enabled_probes(contents): # pylint: disable=too-many-branches
                 if (found in probes) is False:
                     probes.append(found)
 
+    if 'Label' in probes:
+        probes.remove('Label')
+
+    if 'NfcProbe' in probes:
+        probes.remove('NfcProbe')
+
     return probes
 
 
