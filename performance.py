@@ -32,9 +32,14 @@ def append_performance_sample(user, item, detail_date=None, value=''):
     if os.path.exists(item_path):
         pickle_file = open(item_path, 'rb')
 
-        content = pickle.load(pickle_file) # nosec
+        try:
+            content = pickle.load(pickle_file) # nosec
 
-        pickle_file.close()
+            pickle_file.close()
+        except EOFError:
+            content = {}
+        except ValueError:
+            content = {}
 
     content[detail_date.isoformat()] = value
 

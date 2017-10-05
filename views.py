@@ -32,21 +32,22 @@ def pr_config(request):
 
     device_id = request.GET['user_id']
 
-    device = PurpleRobotDevice.objects.get(device_id=device_id)
+    device = PurpleRobotDevice.objects.filter(device_id=device_id).first()
 
-    if device.configuration is not None:
-        config = device.configuration
-    elif device.device_group.configuration is not None:
-        config = device.device_group.configuration
+    if device is not None:
+        if device.configuration is not None:
+            config = device.configuration
+        elif device.device_group.configuration is not None:
+            config = device.device_group.configuration
 
-    device.config_last_fetched = datetime.datetime.now()
+        device.config_last_fetched = datetime.datetime.now()
 
-    try:
-        device.config_last_user_agent = request.META['HTTP_USER_AGENT']
-    except KeyError:
-        device.config_last_user_agent = 'Unknown'
+        try:
+            device.config_last_user_agent = request.META['HTTP_USER_AGENT']
+        except KeyError:
+            device.config_last_user_agent = 'Unknown'
 
-    device.save()
+        device.save()
 
     if config is None:
         config = get_object_or_404(PurpleRobotConfiguration, slug='default')
