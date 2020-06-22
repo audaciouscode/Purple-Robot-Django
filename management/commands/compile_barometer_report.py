@@ -74,7 +74,7 @@ class Command(BaseCommand):
                                 normal_times.append(-1)
 
                         if has_sensor:
-                            for i in range(0, len(sensor_times)):
+                            for i in range(0, len(sensor_times)): # pylint: disable=consider-using-enumerate
                                 sensor_ts = float(sensor_times[i])
 
                                 normalized_ts = sensor_ts / (1000 * 1000 * 1000)
@@ -94,7 +94,7 @@ class Command(BaseCommand):
                         for y_reading in reading_json['PRESSURE']:
                             y_readings.append(y_reading)
 
-                        for i in range(0, len(cpu_times)):
+                        for i in range(0, len(cpu_times)): # pylint: disable=consider-using-enumerate
                             x_reading = x_readings[i]
                             y_reading = y_readings[i]
                             cpu_time = cpu_times[i]

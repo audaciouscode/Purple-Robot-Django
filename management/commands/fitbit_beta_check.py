@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
                 times = payload[key + '_TIMESTAMPS']
 
-                for i in range(0, len(values)):
+                for i in range(0, len(values)): # pylint: disable=consider-using-enumerate
                     value = values[i]
                     time = times[i]
 

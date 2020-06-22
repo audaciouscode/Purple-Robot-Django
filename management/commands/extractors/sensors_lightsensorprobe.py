@@ -142,7 +142,7 @@ def insert(connection_str, user_id, reading, check_exists=True): # pylint: disab
                         accuracy_buffer = content[4]
                         lux_buffer = content[5]
 
-                        for i in range(0, len(time_buffer)):
+                        for i in range(0, len(time_buffer)): # pylint: disable=consider-using-enumerate
                             values = [user_id, reading_id, datetime.datetime.fromtimestamp(reading['TIMESTAMP'], tz=pytz.utc)]
 
                             values.append(time_buffer[i])

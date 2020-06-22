@@ -75,7 +75,7 @@ class Command(BaseCommand):
                                 normal_times.append(-1)
 
                         if has_sensor:
-                            for i in range(0, len(sensor_times)):
+                            for i in range(0, len(sensor_times)): # pylint: disable=consider-using-enumerate
                                 try:
                                     sensor_ts = float(sensor_times[i])
 
@@ -101,7 +101,7 @@ class Command(BaseCommand):
                         for z_reading in reading_json['Z']:
                             z_readings.append(z_reading)
 
-                        for i in range(0, len(cpu_times)):
+                        for i in range(0, len(cpu_times)): # pylint: disable=consider-using-enumerate
                             x_reading = x_readings[i]
                             y_reading = y_readings[i]
                             z_reading = z_readings[i]
